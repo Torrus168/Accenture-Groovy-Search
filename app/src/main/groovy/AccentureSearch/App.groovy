@@ -9,6 +9,9 @@ import java.nio.file.Paths
 import groovy.util.logging.Log
 
 @Log
+/**
+ *
+ */
 class App {
     static void main(String... args) {
         log.info("Initiated")
@@ -20,6 +23,7 @@ class App {
         App app = new App()
         //backupZip(args)
         app.search(args)
+        
     }
 
 

@@ -4,7 +4,6 @@
 package AccentureSearch
 
 import spock.lang.Specification
-
 import java.nio.file.Files
 import java.nio.file.Paths
 
