@@ -135,4 +135,49 @@ class AppTest extends Specification {
         def changedFiles = new File(testDir + '/checked_files.txt')
         changedFiles.text.contains('wrongFile') == false
     }
+    def "changed files test2"() {
+        setup:
+        def app = new App()
+
+        def projectDir = System.getProperty("user.dir")
+        def testDir = projectDir + "/build/testCase"
+
+        if (Files.exists(Paths.get(testDir))) {
+            def file = new File(testDir)
+            file.deleteDir()
+        }
+
+        def rootFolder = new File(testDir)
+        rootFolder.mkdir()
+
+        def branchFolder1 = new File(testDir + '/branch1')
+        branchFolder1.mkdir()
+
+        def branchFolder2 = new File(testDir + '/branch2')
+        branchFolder2.mkdir()
+
+        def textTest1 = new File(testDir + '/texttest1.txt')
+        textTest1.createNewFile()
+        textTest1.text="text file 1"
+
+        def textTest2 = new File(testDir + '/branch1/texttest2.txt')
+        textTest2.createNewFile()
+        textTest2.text="text file in first branch"
+
+        def textTest3 = new File(testDir + '/branch2/texttest3.txt')
+        textTest3.createNewFile()
+        textTest3.text="text file in second branch"
+
+        def changedFiles = new File(testDir + '/chgd_files.txt')
+        textTest3.createNewFile()
+
+
+        when:
+
+
+        def result = app.search(testDir, 'file', 'OOOOOO', testDir + '/chgd_files.txt' )
+
+        then:
+        changedFiles.text.contains('texttest1') == true
+    }
 }

@@ -6,15 +6,20 @@ package AccentureSearch
 import groovy.io.FileType
 import java.nio.file.Files
 import java.nio.file.Paths
+import groovy.util.logging.Log
 
+@Log
 class App {
     static void main(String... args) {
+        log.info("Initiated")
         if (!validate(args)) {
+            log.severe("Validation error")
             System.exit(1)
         }
 
         App app = new App()
-        app.search()
+        //backupZip(args)
+        app.search(args)
     }
 
 
@@ -22,36 +27,12 @@ class App {
     protected search(String... args) {
         // Takes path as an argument and initializes work directory & backup directory
         def directory = args[0]
-        def backupDir = directory.replaceFirst('[^/]*$' , '.backup')
 
         // Initializes search phrase/pattern
         def searchedString = args[1]
 
         // Initializes replacement
         def newString = args[2]
-        System.out.println newString
-
-        //Handles deletion of old backup folder
-        if (Files.exists(Paths.get(backupDir))) {
-            def file = new File(backupDir)
-            file.deleteDir()
-            file.mkdir()
-            println "Backup replaced"
-        } else {
-            def backupDirNew = new File(backupDir)
-            backupDirNew.mkdir()
-            println "backup created"
-        }
-
-        //Backup handling
-        try {
-            new AntBuilder().copy( todir:backupDir ) {
-                fileset( dir:directory)
-            }
-            //FileUtils.copyDirectory(source, backup);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
         //Initialization of new string with listed checked items
         def checkedString = new String()
@@ -59,19 +40,32 @@ class App {
         //Handling of recursive file search and check for content
         new File(directory).eachFileRecurse(FileType.FILES) { file ->
             if(file.text.contains(searchedString)) {
+                log.info(file.name + ' has been changed')
                 file.text = file.text.replaceAll(searchedString, newString)
                 checkedString += "\n $file.parent $file.name"
             }
         }
 
         //Creating checked_files.txt with changed file names
-        def checkedFiles = new File(directory + '/checked_files.txt')
-        checkedFiles.append(checkedString)
+        if(args.length > 3) {
+            def checkedFiles = new File(args[3])
+            checkedFiles.append(checkedString)
+        } else {
+            def checkedFiles = new File(directory + '/checked_files.txt')
+            checkedFiles.delete()
+            checkedFiles.createNewFile()
+            checkedFiles.append(checkedString)
+        }
 
+        log.info('Search has been executed')
     }
 
     //Input validation
     static boolean validate(String... args) {
-        return args.length == 3 && Files.exists(Paths.get(args[0]))
+        if(args.length > 3) {
+            return Files.exists(Paths.get(args[0])) && Files.exists(Paths.get(args[3]))
+        } else {
+            return args.length > 2 && Files.exists(Paths.get(args[0]))
+        }
     }
 }
